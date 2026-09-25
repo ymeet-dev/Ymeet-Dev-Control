@@ -1,6 +1,6 @@
 # Ymeet Dev Control
 
-Plataforma de orquestração de desenvolvimento assistido por agentes de IA.
+Plataforma de orquestraÃ§Ã£o de desenvolvimento assistido por agentes de IA.
 
 ## Objetivo
 
@@ -8,19 +8,29 @@ Permitir que ideias e tarefas de desenvolvimento sejam organizadas, executadas, 
 
 ## Fluxo
 
-MEYLA ? PM ? QUEUE ? DEV ? AUDIT ? QA ? APPROVAL ? READY TO PUBLISH
+MEYLA â†’ PM â†’ QUEUE â†’ DEV â†’ AUDIT â†’ QA â†’ APPROVAL â†’ READY TO PUBLISH
 
 ## Estrutura
 
-- pps/web — aplicação web
-- packages/database — camada de banco de dados
-- packages/shared — código compartilhado
-- packages/types — tipos compartilhados
-- services/orchestrator — orquestrador do sistema
-- docs — documentação
-- supabase — configuração e migrações do Supabase
-- scripts — scripts auxiliares
+- `apps/web` â€” aplicaÃ§Ã£o web (Next.js + TypeScript)
+- `packages/database` â€” camada de banco de dados (client Supabase)
+- `packages/shared` â€” cÃ³digo compartilhado
+- `packages/types` â€” tipos compartilhados
+- `services/orchestrator` â€” orquestrador do sistema (mÃ¡quina de estados e fila)
+- `docs` â€” documentaÃ§Ã£o (ver `docs/architecture` para a arquitetura aprovada)
+- `supabase` â€” configuraÃ§Ã£o e migraÃ§Ãµes do Supabase
+- `scripts` â€” scripts auxiliares
+
+## Desenvolvimento
+
+```bash
+npm install
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
 
 ## Status
 
-Projeto em fase inicial de arquitetura e infraestrutura.
+Projeto em implementaÃ§Ã£o â€” Fase 1 (base do projeto).
