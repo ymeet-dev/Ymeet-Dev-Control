@@ -9,5 +9,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
+    "server-only": "^0.0.1"
+  }
 }
