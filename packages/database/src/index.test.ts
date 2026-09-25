@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // O mock reproduz aqui o comportamento de servidor, sem alterar a proteção real em build.
 vi.mock('server-only', () => ({}));
 
-const { createSupabaseAdminClient, createSupabaseClient } = await import('./index');
+const { createSupabaseAdminClient, createSupabaseClient, createBrowserSupabaseClient, createServerSupabaseClient } =
+  await import('./index');
 
 const ENV_KEYS = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'] as const;
 
@@ -49,5 +50,25 @@ describe('createSupabaseClient', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
     expect(() => createSupabaseAdminClient()).not.toThrow();
+  });
+
+  it('createBrowserSupabaseClient lança erro quando NEXT_PUBLIC_SUPABASE_URL está ausente', () => {
+    expect(() => createBrowserSupabaseClient()).toThrow('NEXT_PUBLIC_SUPABASE_URL');
+  });
+
+  it('createBrowserSupabaseClient cria o client quando as variáveis estão presentes', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
+    expect(() => createBrowserSupabaseClient()).not.toThrow();
+  });
+
+  it('createServerSupabaseClient lança erro quando NEXT_PUBLIC_SUPABASE_URL está ausente', () => {
+    expect(() => createServerSupabaseClient({ getAll: () => [] })).toThrow('NEXT_PUBLIC_SUPABASE_URL');
+  });
+
+  it('createServerSupabaseClient cria o client quando as variáveis e os cookies estão presentes', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
+    expect(() => createServerSupabaseClient({ getAll: () => [] })).not.toThrow();
   });
 });

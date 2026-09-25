@@ -3,6 +3,10 @@
  *   - supabase/migrations/20260925141018_init_schema.sql
  *   - supabase/migrations/20260925141021_rls_policies.sql
  *
+ * `Relationships` foi deixado vazio (`[]`) em todas as tabelas — é exigido pelo
+ * tipo `GenericTable` do @supabase/supabase-js para o `.from()` tipado funcionar,
+ * mas não habilita joins embutidos tipados (`.select('*, outra_tabela(*)')`).
+ *
  * Quando um projeto Supabase estiver linkado (`supabase link`), substituir por:
  *   supabase gen types typescript --linked > src/types.ts
  */
@@ -63,6 +67,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       projects: {
         Row: {
@@ -98,6 +103,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       agents: {
         Row: {
@@ -133,6 +139,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       tasks: {
         Row: {
@@ -171,6 +178,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       task_versions: {
         Row: {
@@ -197,6 +205,7 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       task_dependencies: {
         Row: {
@@ -220,6 +229,7 @@ export interface Database {
           dependency_type?: TaskDependencyType;
           created_at?: string;
         };
+        Relationships: [];
       };
       task_state_transitions: {
         Row: {
@@ -255,6 +265,7 @@ export interface Database {
           reason?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       executions: {
         Row: {
@@ -302,6 +313,7 @@ export interface Database {
           finished_at?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       reviews: {
         Row: {
@@ -340,6 +352,7 @@ export interface Database {
           checklist?: Json;
           created_at?: string;
         };
+        Relationships: [];
       };
       approvals: {
         Row: {
@@ -375,6 +388,7 @@ export interface Database {
           requested_at?: string;
           decided_at?: string | null;
         };
+        Relationships: [];
       };
       logs: {
         Row: {
@@ -407,6 +421,7 @@ export interface Database {
           payload?: Json;
           created_at?: string;
         };
+        Relationships: [];
       };
       configurations: {
         Row: {
@@ -436,6 +451,7 @@ export interface Database {
           updated_by?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
