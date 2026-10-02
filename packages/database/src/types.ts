@@ -462,3 +462,6 @@ export interface Database {
 }
 
 export type TypedSupabaseClient = SupabaseClient<Database>;
+
+export type Tables<TableName extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][TableName]['Row'];

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getCurrentUser } from '../lib/auth/get-current-user';
 import { signOut } from './login/actions';
 
@@ -12,6 +13,9 @@ export default async function HomePage() {
         <section>
           <p>
             Logado como {currentUser.email ?? currentUser.id} — papel: {currentUser.role}
+          </p>
+          <p>
+            <Link href="/tasks">Ver painel de tarefas</Link>
           </p>
           <form action={signOut}>
             <button type="submit">Sair</button>
