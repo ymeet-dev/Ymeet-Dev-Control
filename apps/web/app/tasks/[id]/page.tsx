@@ -9,10 +9,12 @@ import { getTaskDetailData } from '../../../lib/tasks/data';
 
 interface TaskDetailPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ created?: string; dependencyError?: string }>;
 }
 
-export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
+export default async function TaskDetailPage({ params, searchParams }: TaskDetailPageProps) {
   const { id } = await params;
+  const { created, dependencyError } = await searchParams;
   const data = await getTaskDetailData(id);
 
   if (!data) {
@@ -26,6 +28,11 @@ export default async function TaskDetailPage({ params }: TaskDetailPageProps) {
       <p>
         <Link href="/tasks">&larr; Voltar ao painel</Link>
       </p>
+
+      {created === '1' ? <p className={styles.successBanner}>Tarefa criada com sucesso.</p> : null}
+      {dependencyError ? (
+        <p className={styles.errorBanner}>Tarefa criada, mas houve um erro ao salvar dependências: {dependencyError}</p>
+      ) : null}
 
       <h1>{task.title}</h1>
       <p>

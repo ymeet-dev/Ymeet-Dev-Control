@@ -1,10 +1,17 @@
-import type { Tables, TypedSupabaseClient } from '../types';
+import type { Tables, TaskDependencyType, TaskState, TypedSupabaseClient } from '../types';
 
 export type TaskRow = Tables<'tasks'>;
 export type ProjectRow = Tables<'projects'>;
 export type TaskVersionRow = Tables<'task_versions'>;
 export type TaskDependencyRow = Tables<'task_dependencies'>;
 export type TaskStateTransitionRow = Tables<'task_state_transitions'>;
+
+export async function listProjects(supabase: TypedSupabaseClient): Promise<ProjectRow[]> {
+  const { data, error } = await supabase.from('projects').select('*').order('name', { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
 
 /**
  * Todas as tarefas visíveis para o usuário atual (a policy tasks_select libera
@@ -87,4 +94,37 @@ export async function listTaskHistory(
 
   if (error) throw error;
   return data ?? [];
+}
+
+export interface NewTaskInput {
+  project_id: string;
+  title: string;
+  state: TaskState;
+  priority: number;
+  created_by: string | null;
+}
+
+/** Insere a tarefa com o client autenticado — sujeito à policy tasks_insert (admin/pm). */
+export async function createTask(supabase: TypedSupabaseClient, input: NewTaskInput): Promise<TaskRow> {
+  const { data, error } = await supabase.from('tasks').insert(input).select('*').single();
+
+  if (error) throw error;
+  return data;
+}
+
+export interface NewTaskDependencyInput {
+  task_id: string;
+  depends_on_task_id: string;
+  dependency_type: TaskDependencyType;
+}
+
+/** Sujeito à policy task_dependencies_insert (admin/pm) e ao constraint unique(task_id, depends_on_task_id). */
+export async function createTaskDependencies(
+  supabase: TypedSupabaseClient,
+  rows: NewTaskDependencyInput[],
+): Promise<void> {
+  if (rows.length === 0) return;
+
+  const { error } = await supabase.from('task_dependencies').insert(rows);
+  if (error) throw error;
 }

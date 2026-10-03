@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import type { ProfileRole } from 'database';
 import { getServerSupabaseClient } from '../supabase/server';
 
@@ -13,8 +14,11 @@ export interface CurrentUser {
  * Retorna null se não houver sessão válida. A leitura de `profiles` respeita RLS
  * (policy profiles_select: id = auth.uid() ou role admin) — cada usuário sempre
  * consegue ler o próprio perfil.
+ *
+ * Envolvido em `cache()` porque várias partes da árvore (layout, páginas) chamam
+ * isso na mesma requisição — dedup por request, sem persistir entre requests.
  */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const supabase = await getServerSupabaseClient();
 
   const {
@@ -33,4 +37,4 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     role: profile?.role ?? 'viewer',
     name: profile?.name ?? null,
   };
-}
+});

@@ -97,7 +97,9 @@ create policy agents_update on public.agents
 -- estados fixa (docs/architecture/fase-1-arquitetura.md) exige que
 -- PENDING_APPROVAL -> APPROVED e READY_TO_PUBLISH -> PUBLISHED so ocorram com
 -- decisao humana ja registrada em approvals. Bloqueia tanto o atalho de estado
--- (partir de outro estado) quanto a ausencia da aprovacao.
+-- (partir de outro estado) quanto a ausencia da aprovacao. Tambem bloqueia o
+-- atalho via INSERT: uma tarefa nova so pode nascer em BACKLOG, nunca direto
+-- em APPROVED/PUBLISHED (ou qualquer outro estado) sem passar pelo fluxo normal.
 create function public.enforce_task_approval_gate()
 returns trigger
 language plpgsql
@@ -105,6 +107,13 @@ security definer
 set search_path = public
 as $$
 begin
+  if tg_op = 'INSERT' then
+    if new.state <> 'BACKLOG' then
+      raise exception 'transicao invalida: uma nova tarefa deve iniciar em BACKLOG';
+    end if;
+    return new;
+  end if;
+
   if new.state = 'APPROVED' and old.state is distinct from new.state then
     if old.state <> 'PENDING_APPROVAL' then
       raise exception 'transicao invalida: APPROVED so e permitido a partir de PENDING_APPROVAL';
@@ -138,7 +147,7 @@ end;
 $$;
 
 create trigger tasks_enforce_approval_gate
-  before update on public.tasks
+  before insert or update on public.tasks
   for each row execute function public.enforce_task_approval_gate();
 
 alter table public.tasks enable row level security;
