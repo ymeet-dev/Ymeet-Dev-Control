@@ -1,0 +1,63 @@
+.page {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  margin-block-start: min(15vh, 4rem);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.field input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-color, #d0d0d8);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.submit {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--border-color, #d0d0d8);
+  border-radius: 6px;
+  background: var(--card-bg, canvas);
+  font: inherit;
+  cursor: pointer;
+}
+
+.errorBanner {
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.1);
+  color: rgb(185, 28, 28);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .errorBanner {
+    color: rgb(252, 165, 165);
+  }
+}
