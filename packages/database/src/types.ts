@@ -423,6 +423,21 @@ export interface Database {
         };
         Relationships: [];
       };
+      task_state_transition_rules: {
+        Row: {
+          from_state: string;
+          to_state: string;
+        };
+        Insert: {
+          from_state: string;
+          to_state: string;
+        };
+        Update: {
+          from_state?: string;
+          to_state?: string;
+        };
+        Relationships: [];
+      };
       configurations: {
         Row: {
           id: string;
@@ -455,7 +470,16 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      transition_task_state: {
+        Args: {
+          p_task_id: string;
+          p_to_state: TaskState;
+          p_reason?: string | null;
+        };
+        Returns: Database['public']['Tables']['tasks']['Row'];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

@@ -4,3 +4,5 @@ export * from './admin';
 export * from './browser';
 export * from './server';
 export * from './queries/tasks';
+export * from './taskStateMachine';
+export * from './taskStateErrors';

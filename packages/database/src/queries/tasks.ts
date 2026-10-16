@@ -128,3 +128,31 @@ export async function createTaskDependencies(
   const { error } = await supabase.from('task_dependencies').insert(rows);
   if (error) throw error;
 }
+
+export interface TransitionTaskStateInput {
+  taskId: string;
+  toState: TaskState;
+  reason?: string | null;
+}
+
+/**
+ * Chama a função transition_task_state (sem SECURITY DEFINER — roda com o
+ * privilégio do próprio chamador). A validação real do grafo de transições,
+ * do motivo obrigatório, do papel do solicitante e dos gates de aprovação
+ * acontece na trigger enforce_task_approval_gate, não aqui — esta função só
+ * traduz a chamada e propaga o erro do Postgres quando a transição é negada.
+ */
+export async function transitionTaskState(
+  supabase: TypedSupabaseClient,
+  input: TransitionTaskStateInput,
+): Promise<TaskRow> {
+  const { data, error } = await supabase.rpc('transition_task_state', {
+    p_task_id: input.taskId,
+    p_to_state: input.toState,
+    p_reason: input.reason ?? null,
+  });
+
+  if (error) throw error;
+  if (!data) throw new Error('transition_task_state não retornou a tarefa atualizada.');
+  return data;
+}
