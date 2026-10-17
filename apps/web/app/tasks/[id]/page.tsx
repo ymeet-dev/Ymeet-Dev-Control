@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllowedNextStates, getBlockedOriginState, requiresTransitionReason } from 'database';
+import {
+  canRequestApproval,
+  getAllowedNextStates,
+  getBlockedOriginState,
+  getRequestableApprovalType,
+  requiresTransitionReason,
+} from 'database';
 import { StateBadge } from '../../../components/tasks/StateBadge';
 import { PriorityBadge } from '../../../components/tasks/PriorityBadge';
 import { TaskDependencies } from '../../../components/tasks/TaskDependencies';
@@ -9,7 +15,25 @@ import styles from '../../../components/tasks/tasks.module.css';
 import { getTaskDetailData } from '../../../lib/tasks/data';
 import { getCurrentUser } from '../../../lib/auth/get-current-user';
 import { TASK_STATE_LABELS } from '../../../lib/tasks/state';
-import { changeTaskStateAction } from './actions';
+import { changeTaskStateAction, requestApprovalAction } from './actions';
+
+const APPROVAL_TYPE_LABELS = {
+  task_approval: 'Aprovação do trabalho',
+  publish_approval: 'Autorização de publicação',
+  destructive_op: 'Operação destrutiva',
+} as const;
+
+const APPROVAL_DECISION_LABELS = {
+  pending: 'Pendente',
+  approved: 'Aprovada',
+  rejected: 'Rejeitada',
+} as const;
+
+const APPROVAL_DECISION_BADGE_CLASS: Record<'pending' | 'approved' | 'rejected', string | undefined> = {
+  pending: styles.badgePending,
+  approved: styles.badgeSuccess,
+  rejected: styles.badgeDanger,
+};
 
 interface TaskDetailPageProps {
   params: Promise<{ id: string }>;
@@ -18,22 +42,28 @@ interface TaskDetailPageProps {
     dependencyError?: string;
     stateUpdated?: string;
     stateError?: string;
+    approvalRequested?: string;
+    approvalError?: string;
   }>;
 }
 
 export default async function TaskDetailPage({ params, searchParams }: TaskDetailPageProps) {
   const { id } = await params;
-  const { created, dependencyError, stateUpdated, stateError } = await searchParams;
+  const { created, dependencyError, stateUpdated, stateError, approvalRequested, approvalError } =
+    await searchParams;
   const [data, currentUser] = await Promise.all([getTaskDetailData(id), getCurrentUser()]);
 
   if (!data) {
     notFound();
   }
 
-  const { task, project, version, dependencies, dependsOnTasksById, history } = data;
+  const { task, project, version, dependencies, dependsOnTasksById, history, approvals } = data;
 
   const blockedOrigin = getBlockedOriginState(history);
   const allowedNextStates = getAllowedNextStates(task.state, currentUser?.role, blockedOrigin);
+
+  const requestableApprovalType = getRequestableApprovalType(task.state, approvals);
+  const canShowRequestApproval = requestableApprovalType !== null && canRequestApproval(currentUser?.role);
 
   return (
     <>
@@ -49,6 +79,14 @@ export default async function TaskDetailPage({ params, searchParams }: TaskDetai
       {stateError ? (
         <p role="alert" className={styles.errorBanner}>
           {stateError}
+        </p>
+      ) : null}
+      {approvalRequested === '1' ? (
+        <p className={styles.successBanner}>Aprovação solicitada com sucesso.</p>
+      ) : null}
+      {approvalError ? (
+        <p role="alert" className={styles.errorBanner}>
+          {approvalError}
         </p>
       ) : null}
 
@@ -106,6 +144,58 @@ export default async function TaskDetailPage({ params, searchParams }: TaskDetai
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Dependências</h2>
         <TaskDependencies dependencies={dependencies} dependsOnTasksById={dependsOnTasksById} />
+      </div>
+
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Aprovações</h2>
+        {approvals.length === 0 ? (
+          <p className={styles.note}>Nenhuma aprovação foi solicitada para esta tarefa ainda.</p>
+        ) : (
+          <ul className={styles.list}>
+            {approvals.map((approval) => (
+              <li key={approval.id} className={styles.listItem}>
+                <span className={`${styles.badge ?? ''} ${APPROVAL_DECISION_BADGE_CLASS[approval.decision] ?? ''}`}>
+                  {APPROVAL_TYPE_LABELS[approval.approval_type]} — {APPROVAL_DECISION_LABELS[approval.decision]}
+                </span>
+                <div className={styles.cardMeta}>
+                  <span>
+                    Solicitada por{' '}
+                    {approval.requested_by ? (
+                      <code>{approval.requested_by.slice(0, 8)}</code>
+                    ) : (
+                      '—'
+                    )}{' '}
+                    em {new Date(approval.requested_at).toLocaleString('pt-BR')}
+                  </span>
+                </div>
+                {approval.decided_at ? (
+                  <div className={styles.cardMeta}>
+                    <span>
+                      Decidida por{' '}
+                      {approval.approved_by ? <code>{approval.approved_by.slice(0, 8)}</code> : '—'} em{' '}
+                      {new Date(approval.decided_at).toLocaleString('pt-BR')}
+                    </span>
+                  </div>
+                ) : null}
+                {approval.decision_reason ? (
+                  <p className={styles.note}>Motivo: {approval.decision_reason}</p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className={styles.note}>
+          Esta seção ainda não resolve o id de quem solicitou/decidiu em nome de pessoa — mesma limitação já
+          documentada em TaskHistory, já que a policy profiles_select só libera o próprio perfil ou admin.
+        </p>
+
+        {canShowRequestApproval && requestableApprovalType ? (
+          <form action={requestApprovalAction} className={styles.stateActionForm}>
+            <input type="hidden" name="task_id" value={task.id} />
+            <input type="hidden" name="approval_type" value={requestableApprovalType} />
+            <button type="submit">Solicitar {APPROVAL_TYPE_LABELS[requestableApprovalType]}</button>
+          </form>
+        ) : null}
       </div>
 
       {allowedNextStates.length > 0 ? (

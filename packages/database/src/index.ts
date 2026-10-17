@@ -4,5 +4,8 @@ export * from './admin';
 export * from './browser';
 export * from './server';
 export * from './queries/tasks';
+export * from './queries/approvals';
 export * from './taskStateMachine';
 export * from './taskStateErrors';
+export * from './approvalRules';
+export * from './approvalErrors';

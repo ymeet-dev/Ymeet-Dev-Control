@@ -3,10 +3,12 @@ import {
   getTask,
   getTaskVersion,
   listProjectsByIds,
+  listTaskApprovals,
   listTaskDependencies,
   listTaskHistory,
   listTasks,
   listTasksByIds,
+  type ApprovalRow,
   type ProjectRow,
   type TaskDependencyRow,
   type TaskRow,
@@ -37,6 +39,7 @@ export interface TaskDetailData {
   dependencies: TaskDependencyRow[];
   dependsOnTasksById: Map<string, TaskRow>;
   history: TaskStateTransitionRow[];
+  approvals: ApprovalRow[];
 }
 
 export async function getTaskDetailData(taskId: string): Promise<TaskDetailData | null> {
@@ -47,11 +50,12 @@ export async function getTaskDetailData(taskId: string): Promise<TaskDetailData 
     return null;
   }
 
-  const [project, version, dependencies, history] = await Promise.all([
+  const [project, version, dependencies, history, approvals] = await Promise.all([
     getProject(supabase, task.project_id),
     task.current_version_id ? getTaskVersion(supabase, task.current_version_id) : Promise.resolve(null),
     listTaskDependencies(supabase, taskId),
     listTaskHistory(supabase, taskId),
+    listTaskApprovals(supabase, taskId),
   ]);
 
   const dependsOnTasks = await listTasksByIds(
@@ -66,5 +70,6 @@ export async function getTaskDetailData(taskId: string): Promise<TaskDetailData 
     dependencies,
     dependsOnTasksById: new Map(dependsOnTasks.map((dependency) => [dependency.id, dependency])),
     history,
+    approvals,
   };
 }
